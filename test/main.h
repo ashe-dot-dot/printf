@@ -55,5 +55,7 @@ int print_rev(va_list arguments, char *buf, unsigned int ibuf)
 unsigned int handl_buf(char *buf, char c, unsigned int ibuf);
 int print_buf(char *buf, unsigned int nbuf);
 int print_rot(va_list arguments, char *buf, unsigned int ibuf)
+int print_func(const char *s, int index)
+
 
 #endif
