@@ -50,7 +50,7 @@ int (*get_print(char s))(va_list, flags *)
 		{"x", print_hex_lower},
 		{"X", print_hex_upper},
 		{"S", print_partial_string},
-		{"p", print_pointer}
+		{"p", print_pointer},
 	};
 	int flag_num = 11;
 

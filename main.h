@@ -51,9 +51,9 @@ int print_partial_string(va_list arg, flags *f);
 int count_digit(int n);
 int print_pointer(va_list arg, flags *f);
 int (*get_print(char s))(va_list, flags *);
-int print_rev(va_list arguments, char *buf, unsigned int ibuf)
+int print_rev(va_list arguments, char *buf, unsigned int ibuf);
 unsigned int handl_buf(char *buf, char c, unsigned int ibuf);
 int print_buf(char *buf, unsigned int nbuf);
-int print_rot(va_list arguments, char *buf, unsigned int ibuf)
+int print_rot(va_list arguments, char *buf, unsigned int ibuf);
 
 #endif
