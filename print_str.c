@@ -12,5 +12,7 @@ int print_str(va_list arg, flags *f)
 
 	(void)f;
 	str = va_arg(arg, char *);
+	if (!str)
+		str = "(null)";
 	return (_puts(str));
 }
