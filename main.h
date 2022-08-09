@@ -42,7 +42,7 @@ int print_char(va_list arg, flags *f);
 int print_decimal(va_list arg, flags *f);
 int print_binary(va_list arg, flags *f);
 char *convertor(unsigned long int n, int base, int upper);
-void print_number(unsigned long int n);
+void print_number(int n);
 int print_unsigned(va_list arg, flags *f);
 int print_octal(va_list arg, flags *f);
 int print_hex_lower(va_list arg, flags *f);
