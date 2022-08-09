@@ -1,113 +1,90 @@
 #include "main.h"
-#include <stdarg.h>
-#include <stdlib.h>
+
+void cleanup(va_list args, buffer_t *output);
+int run_printf(const char *format, va_list args, buffer_t *output);
+int _printf(const char *format, ...);
 
 /**
- * get_flag - return flags in argument
- * @s: fcharacter to be checked
- * @f: data structure item for flags
- * Return: always 1;
+ * cleanup - Peforms cleanup operations for _printf.
+ * @args: A va_list of arguments provided to _printf.
+ * @output: A buffer_t struct.
  */
-int get_flag(char s, flags *f)
+void cleanup(va_list args, buffer_t *output)
 {
-	int i;
-
-	i = 0;
-	switch (s)
-	{
-		case '+':
-			f->plus = 1;
-			i = 1;
-			break;
-		case ' ':
-			f->space = 1;
-			i = 1;
-			break;
-		case '#':
-			f->hash = 1;
-			i = 1;
-			break;
-	}
-	return (i);
+	va_end(args);
+	write(1, output->start, output->len);
+	free_buffer(output);
 }
 
 /**
- * get_print - returns the appropriate functions based on specifiers
- * @s: format specifier
- * Return: print function
+ * run_printf - Reads through the format string for _printf.
+ * @format: Character string to print - may contain directives.
+ * @output: A buffer_t struct containing a buffer.
+ * @args: A va_list of arguments.
+ *
+ * Return: The number of characters stored to output.
  */
-int (*get_print(char s))(va_list, flags *)
+int run_printf(const char *format, va_list args, buffer_t *output)
 {
-	int i;
-	printStruct printSelector[] = {
-		{"c", print_char},
-		{"s", print_str},
-		{"d", print_decimal},
-		{"i", print_decimal},
-		{"b", print_binary},
-		{"u", print_unsigned},
-		{"o", print_octal},
-		{"x", print_hex_lower},
-		{"X", print_hex_upper},
-		{"S", print_partial_string},
-		{"p", print_pointer},
-	};
-	int flag_num = 11;
+	int i, wid, prec, ret = 0;
+	char tmp;
+	unsigned char flags, len;
+	unsigned int (*f)(va_list, buffer_t *, unsigned char,
+			int, int, unsigned char);
 
-	for (i = 0; i < flag_num; i++)
+	for (i = 0; *(format + i); i++)
 	{
-		if (*printSelector[i].type == s)
-			return (printSelector[i].printer);
+		len = 0;
+		if (*(format + i) == '%')
+		{
+			tmp = 0;
+			flags = handle_flags(format + i + 1, &tmp);
+			wid = handle_width(args, format + i + tmp + 1, &tmp);
+			prec = handle_precision(args, format + i + tmp + 1,
+					&tmp);
+			len = handle_length(format + i + tmp + 1, &tmp);
+
+			f = handle_specifiers(format + i + tmp + 1);
+			if (f != NULL)
+			{
+				i += tmp + 1;
+				ret += f(args, output, flags, wid, prec, len);
+				continue;
+			}
+			else if (*(format + i + tmp + 1) == '\0')
+			{
+				ret = -1;
+				break;
+			}
+		}
+		ret += _memcpy(output, (format + i), 1);
+		i += (len != 0) ? 1 : 0;
 	}
-	return (NULL);
+	cleanup(args, output);
+	return (ret);
 }
 
 /**
- * _printf - the replica of standard printf function
- * @format: the first argument
- * Return: the length of chars printed
+ * _printf - Outputs a formatted string.
+ * @format: Character string to print - may contain directives.
+ *
+ * Return: The number of characters printed.
  */
 int _printf(const char *format, ...)
 {
+	buffer_t *output;
 	va_list args;
-	int i, count;
-	int (*print_func)(va_list arg, flags *f);
-	flags f = {0, 0, 0,};
+	int ret;
+
+	if (format == NULL)
+		return (-1);
+	output = init_buffer();
+	if (output == NULL)
+		return (-1);
 
 	va_start(args, format);
-	if (!format || (format[0] == '%' && !format[1]))
-		return (-1);
-	if (format[0] == '%' && format[1] == ' ' && !format[2])
-		return (-1);
-	i = 0;
-	count = 0;
-	while (format && format[i])
-	{
-		if (format[i] == '%')
-		{
-			i++;
-			if (format[i] == '%')
-			{
-				_putchar('%');
-				count++;
-				i++;
-				continue;
-			}
-			while (get_flag(format[i], &f))
-				i++;
-			print_func = get_print(format[i]);
-			if (print_func)
-				count += print_func(args, &f);
-			else
-				count += _printf("%%%c", format[i]);
-		}
-		else
-		{
-			_putchar(format[i]);
-			count++;
-		}
-		i++;
-	}
-	va_end(args);
-	return (count);
+
+	ret = run_printf(format, args, output);
+
+	return (ret);
 }
